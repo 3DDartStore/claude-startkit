@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude Startkit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: one narrow reading column, phone-first. Intro with three start steps, then five prompt cards in the order you use them. */
+:root {
+  --bg: #F3F6FA;
+  --surface: #FFFFFF;
+  --surface-2: #EAF1F8;
+  --fg: #0E1420;
+  --muted: #566274;
+  --line: #D6DFEA;
+  --accent: #1F72B5;
+  --accent-ink: #FFFFFF;
+  --fill-bg: #D9E8F6;
+  --fill-fg: #0F4F85;
+  --ok: #1E7A4A;
+  --font-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1420; --surface: #151D2C; --surface-2: #1B2638; --fg: #E8EDF5; --muted: #94A2B8;
+    --line: #26324A; --accent: #4A9BE0; --accent-ink: #0E1420; --fill-bg: #1E3A5C; --fill-fg: #BFDDF8; --ok: #5BC48C;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1420; --surface: #151D2C; --surface-2: #1B2638; --fg: #E8EDF5; --muted: #94A2B8;
+  --line: #26324A; --accent: #4A9BE0; --accent-ink: #0E1420; --fill-bg: #1E3A5C; --fill-fg: #BFDDF8; --ok: #5BC48C;
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+}
+.wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding-block: 40px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(34px, 8vw, 52px); line-height: 1.05; letter-spacing: -0.02em; }
+h2 { font-size: 22px; line-height: 1.2; }
+h3 { font-size: 20px; line-height: 1.25; }
+p { margin: 0; }
+
+header { display: flex; flex-direction: column; gap: 14px; }
+.lede { font-size: 18px; color: var(--muted); max-width: 60ch; }
+.lede .fill { font-size: 16px; }
+
+.start { display: flex; flex-direction: column; gap: 16px; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: s; }
+.steps li {
+  counter-increment: s;
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 14px;
+  align-items: start;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.steps li::before {
+  content: counter(s);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  width: 36px; height: 36px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--accent);
+}
+.steps strong { display: block; font-weight: 600; }
+.steps span { color: var(--muted); font-size: 15px; }
+
+.note {
+  font-size: 15px;
+  color: var(--muted);
+  border-left: 3px solid var(--accent);
+  padding: 4px 0 4px 14px;
+}
+
+.prompts { display: flex; flex-direction: column; gap: 20px; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.card-head { display: flex; flex-direction: column; gap: 6px; }
+.when { color: var(--muted); font-size: 15px; }
+.when b { color: var(--fg); font-weight: 600; }
+pre.prompt {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  background: var(--surface-2);
+  border-radius: 10px;
+  padding: 16px;
+  min-width: 0;
+}
+.fill {
+  background: var(--fill-bg);
+  color: var(--fill-fg);
+  border-radius: 4px;
+  padding: 0 3px;
+  font-weight: 500;
+}
+.actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+button.copy {
+  font: 600 15px var(--font-body);
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 18px;
+  cursor: pointer;
+}
+button.copy:hover { filter: brightness(1.08); }
+button.copy:focus-visible { outline: 3px solid var(--fill-bg); outline-offset: 2px; }
+.status { font-size: 14px; color: var(--ok); min-height: 1em; }
+
+footer { font-size: 14px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<style>*,*::before,*::after{box-sizing:border-box}body{margin:0}</style>
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <span class="eyebrow">Inspiratiesessie minor Ondernemen</span>
+    <h1>Claude Startkit</h1>
+    <p class="lede">Vijf prompts om zelf met AI aan de slag te gaan in je bedrijf. Kopieer, plak in Claude en vul de <span class="fill">[gemarkeerde stukjes]</span> zelf in.</p>
+  </header>
+
+  <section class="start" aria-labelledby="start-h">
+    <h2 id="start-h">Zo begin je</h2>
+    <ol class="steps">
+      <li><div><strong>Maak een account op claude.ai</strong><span>Gratis kan, daarmee kun je alle prompts hieronder gebruiken.</span></div></li>
+      <li><div><strong>Maak een project voor je bedrijf</strong><span>Alles wat je in dat project zet, gebruikt Claude in elk gesprek als context.</span></div></li>
+      <li><div><strong>Begin bij prompt 1 of 2</strong><span>Ken je Claude al? Sla prompt 1 over en start met je bedrijfsprofiel.</span></div></li>
+    </ol>
+    <p class="note">Tip: de 5 taken die je tijdens de sessie opschreef zijn het perfecte startpunt voor prompt 3.</p>
+  </section>
+
+  <section class="prompts" aria-label="Prompts">
+
+    <article class="card">
+      <div class="card-head">
+        <span class="eyebrow">Prompt 1</span>
+        <h3>Leer Claude kennen</h3>
+        <p class="when"><b>Wanneer:</b> je hebt Claude nog nauwelijks gebruikt.</p>
+      </div>
+      <pre class="prompt" id="p1">Ik ben ondernemer en wil leren werken met Claude. Ik heb <span class="fill">[geen / een beetje / veel]</span> ervaring met AI en geen programmeerervaring. Mijn bedrijf: <span class="fill">[wat je doet, in één zin]</span>.
+
+Leg me in simpele taal uit:
+1. Wat Claude is en wat ik er als ondernemer mee kan
+2. Wat projecten zijn en hoe ik context geef, zodat je mij beter helpt
+3. Wat Claude Code is, wat het verschil is met de gewone chat en wanneer ik het nodig heb
+4. Hoe ik Claude Code installeer en mijn eerste kleine project start
+
+Behandel één punt tegelijk en geef bij elk punt een voorbeeld dat bij mijn bedrijf past. Check met een korte vraag of ik het snap en ga pas door als ik dat zeg. Zoek actuele informatie op als je twijfelt of iets nog klopt.</pre>
+      <div class="actions"><button class="copy" type="button" id="c1" data-target="p1">Kopieer prompt</button><span class="status" aria-live="polite"></span></div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <span class="eyebrow">Prompt 2</span>
+        <h3>Maak je bedrijfsprofiel</h3>
+        <p class="when"><b>Wanneer:</b> één keer, als basis. Zet de uitkomst in je project.</p>
+      </div>
+      <pre class="prompt" id="p2">Ik ben eigenaar van <span class="fill">[naam van je bedrijf]</span>. Ik wil een bedrijfsprofiel maken dat ik als vaste context aan Claude kan geven, zodat je me in elk gesprek beter helpt.
+
+Interview me. Stel één vraag tegelijk en wacht op mijn antwoord. Vraag in ieder geval naar:
+- wat mijn bedrijf doet en wat ik verkoop
+- wie mijn klanten zijn en waarom ze bij mij kopen
+- hoe ik werk en met wie (team, partners, leveranciers)
+- welke tools, kanalen en software ik gebruik
+- mijn doelen voor het komende jaar
+- hoe ik schrijf en met klanten communiceer
+
+Vraag door als een antwoord vaag is. Als je genoeg weet, maak je een overzichtelijk bedrijfsprofiel met kopjes dat ik in een Claude-project kan zetten. Verzin niets wat ik niet heb verteld.</pre>
+      <div class="actions"><button class="copy" type="button" id="c2" data-target="p2">Kopieer prompt</button><span class="status" aria-live="polite"></span></div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <span class="eyebrow">Prompt 3</span>
+        <h3>Vind je AI-kansen</h3>
+        <p class="when"><b>Wanneer:</b> na prompt 2. Plak je bedrijfsprofiel erin.</p>
+      </div>
+      <pre class="prompt" id="p3">Ik ben eigenaar van <span class="fill">[naam van je bedrijf]</span>. <span class="fill">[Plak hier je bedrijfsprofiel uit prompt 2, of beschrijf in een paar zinnen wat je bedrijf doet.]</span>
+
+Ik wil ontdekken waar AI mij tijd kan besparen of mijn bedrijf beter kan maken. Mijn ervaring met AI: <span class="fill">[geen / een beetje / veel]</span>.
+
+Stel me eerst vragen over hoe mijn week eruitziet, welke taken ik niet leuk vind, wat veel tijd kost en waar ik tegenaan loop. Stel één vraag tegelijk en vraag door waar nodig. Ik geef zo uitgebreid mogelijk antwoord.
+
+Als je genoeg weet, geef je me:
+1. Een lijst met taken die ik met AI kan automatiseren of verbeteren, gesorteerd op tijdwinst
+2. Per taak: wat de oplossing is, welke tool je zou gebruiken en hoe moeilijk het is
+3. De ene taak waarmee ik het beste kan beginnen, met de eerste drie stappen</pre>
+      <div class="actions"><button class="copy" type="button" id="c3" data-target="p3">Kopieer prompt</button><span class="status" aria-live="polite"></span></div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <span class="eyebrow">Prompt 4</span>
+        <h3>Van idee naar tool</h3>
+        <p class="when"><b>Wanneer:</b> je weet wat je wilt bouwen en wilt stap voor stap meegenomen worden.</p>
+      </div>
+      <pre class="prompt" id="p4">Ik wil iets bouwen voor <span class="fill">[naam van je bedrijf]</span>: <span class="fill">[beschrijf je idee, bijvoorbeeld een overzicht van al mijn offertes of een automatisch antwoord op veelgestelde klantvragen]</span>.
+
+Ik heb geen programmeerervaring, dus leg alles simpel uit.
+
+Stel me eerst vragen tot je precies snapt wat ik nodig heb. Stel één vraag tegelijk, ik geef zo uitgebreid mogelijk antwoord. Stel daarna een aanpak voor, leg uit waarom, en zeg of ik dit in de gewone chat kan maken of beter met Claude Code.
+
+Neem me daarna stap voor stap mee. Leg bij elke stap uit wat ik moet doen en waarom, en ga pas verder als ik zeg dat het gelukt is.</pre>
+      <div class="actions"><button class="copy" type="button" id="c4" data-target="p4">Kopieer prompt</button><span class="status" aria-live="polite"></span></div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <span class="eyebrow">Prompt 5</span>
+        <h3>Kritische sparringspartner</h3>
+        <p class="when"><b>Wanneer:</b> je twijfelt over een beslissing of een plan.</p>
+      </div>
+      <pre class="prompt" id="p5">Ik twijfel over een beslissing voor <span class="fill">[naam van je bedrijf]</span>: <span class="fill">[beschrijf de keuze]</span>.
+
+Help me dit goed te doordenken. Stel me eerst vragen over de situatie, één tegelijk. Benoem daarna de risico's, de zwakke plekken in mijn redenering en wat ik over het hoofd zie. Wees eerlijk, ook als je denkt dat ik de verkeerde kant op ga. Geef pas aan het eind je advies, met de belangrijkste reden erbij.</pre>
+      <div class="actions"><button class="copy" type="button" id="c5" data-target="p5">Kopieer prompt</button><span class="status" aria-live="polite"></span></div>
+    </article>
+
+  </section>
+
+  <footer>
+    <p>Alle prompts werken met een gratis account. Claude Code zelf vraagt om een betaald abonnement.</p>
+    <p>Gemaakt door Jesper, 3D Dart Store.</p>
+  </footer>
+</main>
+
+<script>
+document.querySelectorAll('button.copy').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var pre = document.getElementById(btn.dataset.target);
+    var status = btn.parentElement.querySelector('.status');
+    var text = pre.textContent;
+    function selectFallback() {
+      try {
+        var range = document.createRange();
+        range.selectNodeContents(pre);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        status.textContent = 'Geselecteerd, kopieer met Ctrl+C of lang drukken';
+      } catch (e) {
+        status.textContent = 'Selecteer de tekst en kopieer hem handmatig';
+      }
+    }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () {
+          status.textContent = 'Gekopieerd';
+          setTimeout(function () { status.textContent = ''; }, 2500);
+        }, selectFallback);
+      } else {
+        selectFallback();
+      }
+    } catch (e) {
+      selectFallback();
+    }
+  });
+});
+</script>
+
+</body>
+</html>
